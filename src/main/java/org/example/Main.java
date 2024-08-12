@@ -60,21 +60,30 @@ public class Main {
         }
     }
     // listing the content of the current directory
+    // had chat gpt help organize the list contents
     private static void listDirectoryContents() {
         try (Stream<Path> stream = Files.list(currentDirectory)) {
-            System.out.println("Name\tSize (bytes)\tLast Modified");
-            stream.forEach(entry -> {
+            // Determine the maximum lengths for name, size, and last modified
+            final int nameWidth = 30;
+            final int sizeWidth = 15;
+            final int dateWidth = 25;
+
+            System.out.printf("%-" + nameWidth + "s%" + sizeWidth + "s%-" + dateWidth + "s%n", "Name", "Size (bytes)", "Last Modified");
+            System.out.println(String.join("", java.util.Collections.nCopies(nameWidth + sizeWidth + dateWidth, "-")));
+
+            stream.forEach(path -> {
                 try {
-                    String size = Files.isDirectory(entry) ? "" : String.valueOf(Files.size(entry));
-                    String lastModified = Files.getLastModifiedTime(entry).toString();
-                    System.out.println(entry.getFileName() + "\t" + size + "\t" + lastModified);
-                } catch (IOException e) {
+                    String name = path.getFileName().toString();
+                    String size = Files.isDirectory(path) ? "" : String.format("%,d", Files.size(path)); // Format size with commas
+                    String lastModified = Files.getLastModifiedTime(path).toString();
+
+                    // Print each entry with proper formatting
+                    System.out.printf("%-" + nameWidth + "s%" + sizeWidth + "s%-" + dateWidth + "s%n", name, size, lastModified);
+                } catch (Exception e) {
                     System.err.println("Error accessing file: " + e.getMessage());
                 }
             });
-        } catch (AccessDeniedException e) {
-            System.err.println("Access denied: " + e.getMessage());
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Error listing directory: " + e.getMessage());
         }
     }
